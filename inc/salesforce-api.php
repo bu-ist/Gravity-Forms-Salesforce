@@ -1573,7 +1573,7 @@ class GFSalesforce {
 				<?php /** define the field to be used as primary key when exporting entry to salesforce, thus avoiding duplicate entries (since 2.5.2) */ ?>
 				<?php if( !empty( $config['meta']['contact_object_name'] ) ) :
 					$current_primary_field = !empty( $config['meta']['primary_field'] ) ? $config['meta']['primary_field'] : ''; ?>
-					<div id="salesforce_optin_container" class="margin_vertical_10">
+					<div id="salesforce_primary_field_container" class="margin_vertical_10">
 						<h2><?php _e('4. Choose a "Primary Key" field.', "gravity-forms-salesforce"); ?></h2>
 						<h3 class="description"><?php _e('What field should be used to update existing objects?', "gravity-forms-salesforce"); ?></h3>
 						<label for="salesforce_primary_field" class="left_header"><?php esc_html_e( 'Update Field', 'gravity-forms-salesforce' ); ?></label>
