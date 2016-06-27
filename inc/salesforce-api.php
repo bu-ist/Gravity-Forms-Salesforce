@@ -960,7 +960,7 @@ class GFSalesforce {
 		<?php
 	}
 
-	static private function api_is_valid($api) {
+	public static function api_is_valid($api) {
 
 		if($api === false || is_string($api) || !empty($api->lastError)) {
 			self::log_error('api_is_valid(): $api is string or has an error: '.print_r($api, true));
