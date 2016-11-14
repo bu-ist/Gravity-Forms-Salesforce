@@ -2121,6 +2121,29 @@ class GFSalesforce {
 		unset($_POST['send_to_salesforce']);
 	}
 
+	public static function name_to_id( $entry, $form ) {
+
+		foreach ( $form['fields'] as $field ) {
+			if ( property_exists( $field, 'salesforceNameToIdEnabled' ) && $field->salesforceNameToIdEnabled ) {
+
+				error_log('found field: ' . $entry[$field->id] . PHP_EOL, 3, '/var/log/isingh.log');
+			}
+		}
+
+		return $entry;
+	}
+
+	public static function query_name_to_id( $name ) {
+		$api = self::get_api();
+
+		if(!self::api_is_valid($api)) {
+			self::log_error('export(): Invalid API. '.print_r($api, true));
+			do_action('gf_salesforce_error', 'export', $api);
+			return;
+		}
+
+	}
+
 	public static function export($entry, $form, $manual_export = false){
 		//Login to Salesforce
 		$api = self::get_api();

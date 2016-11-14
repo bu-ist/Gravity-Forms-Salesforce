@@ -224,13 +224,21 @@ class GFSalesforce_FieldMapping {
                 fieldSettings[enableSalesforceForFields[i]] += ", .salesforce_setting";
             }
 
+            var enableSalesforceForFields = ['text', 'hidden', 'textarea', 'select', 'checkbox', 'radio', 'multiselect'];
+            for (var i=0,len=enableSalesforceForFields.length; i<len; i++) {
+                fieldSettings[enableSalesforceForFields[i]] += ", .salesforce_name_to_id_setting";
+            }
+
+
+
             // When the field starts to show in the form editor, run this function
             $(document).bind("gform_load_field_settings", function(event, field, form){
 
                 // Reset the fields
                 $('#salesforce_map_enabled', event.target).val('');
+                $('#salesforce_name_to_id_enabled', event.target).val('');
                 $("#salesforce_object_list", event.target).val('');
-                $('#salesforce_map_enabled, input[name=salesforce_map_field], input[name=salesforce_map_type]', event.target).attr('checked', false);
+                $('#salesforce_map_enabled, #salesforce_name_to_id_enabled, input[name=salesforce_map_field], input[name=salesforce_map_type]', event.target).attr('checked', false);
 
                 if(field["salesforceMapEnabled"] == true) {
 
@@ -257,7 +265,19 @@ class GFSalesforce_FieldMapping {
                 }
 
                 $("#salesforce_map_enabled, #salesforce_map_type_live, #salesforce_object_list", event.target).trigger('change');
+
+
+                if(field["salesforceNameToIdEnabled"] == true) {
+
+                    $("#salesforce_name_to_id_enabled", event.target).attr("checked", true);
+
+                } else {
+
+                    field.salesforceNameToIdEnabled = false;
+                }
+
             });
+
 
             $('#salesforce_map_enabled').live('click change', function () {
                 var checked = $(this).is(':checked');
@@ -268,6 +288,12 @@ class GFSalesforce_FieldMapping {
                     $('#salesforce_map_ui').hide();
                 }
                 SFDisableChoices();
+            });
+
+
+            $('#salesforce_name_to_id_enabled').live('click change', function () {
+                var checked = $(this).is(':checked');
+                SetFieldProperty('salesforceNameToIdEnabled', checked);
             });
 
             $('input[name=salesforce_map_type]').live('click change', function () {
@@ -415,6 +441,15 @@ class GFSalesforce_FieldMapping {
 
         //create settings on position 50 (right after Admin Label)
         if($position === -1){ ?>
+            <li class="salesforce_name_to_id_setting field_setting">
+
+            <label for="salesforce_name_to_id_enabled">
+                <input type="checkbox" id="salesforce_name_to_id_enabled" name="salesforce_name_to_id_enabled" value="1" /> <?php _e("Enable Salesforce Name to ID Mapping?", "gravity-forms-salesforce"); ?>
+                <img alt="<?php esc_attr_e("Enable Salesforce.com Name to ID Mapping", "gravity-forms-salesforce") ?>" src="<?php echo GFSalesforce::get_base_url()?>/assets/images/salesforce-50x50.png" style="margin:0 7px 0 0;" width="20" height="20" />
+            </label>
+
+            </li>
+
             <li class="use_as_entry_link salesforce_setting field_setting">
 
             <label for="salesforce_map_enabled">
