@@ -49,6 +49,7 @@ class GFSalesforce {
 		add_action('init', array(&$this, 'init'));
 
 		// New fields at entries export
+		add_filter( 'gform_entry_post_save', array( 'GFSalesforce', 'update_entry_name_to_id' ), 10, 2 );
 		add_filter( 'gform_export_fields', array( 'GFSalesforce', 'export_entries_add_fields' ), 10, 1 );
 		add_filter( 'gform_export_field_value', array( 'GFSalesforce', 'export_entries_add_values' ), 999, 4);
 
