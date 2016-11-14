@@ -54,16 +54,16 @@ class SforceBaseClient {
 	protected $queryHeader;
 	protected $userTerritoryDeleteHeader;
 	protected $sessionHeader;
-
+	
 	// new headers
 	protected $allowFieldTruncationHeader;
 	protected $localeOptions;
 	protected $packageVersionHeader;
-
+	
   protected function getSoapClient($wsdl, $options) {
-		return new SoapClient($wsdl, $options);
+		return new SoapClient($wsdl, $options);      
   }
-
+	
 	public function getNamespace() {
 		return $this->namespace;
 	}
@@ -93,7 +93,7 @@ class SforceBaseClient {
 			echo 'False';
 		}
 	}
-
+	
 	/**
 	 * Connect method to www.salesforce.com
 	 *
@@ -106,7 +106,7 @@ class SforceBaseClient {
 	 */
 	public function createConnection($wsdl, $proxy=null, $soap_options=array()) {
 		$phpversion = substr(phpversion(), 0, strpos(phpversion(), '-'));
-
+		
 		$soapClientArray = array_merge(array (
 			'user_agent' => 'salesforce-toolkit-php/'.$this->version,
 			'encoding' => 'utf-8',
@@ -125,7 +125,7 @@ class SforceBaseClient {
             $proxySettings = array();
             $proxySettings['proxy_host'] = $proxy->host;
             $proxySettings['proxy_port'] = $proxy->port; // Use an integer, not a string
-            $proxySettings['proxy_login'] = $proxy->login;
+            $proxySettings['proxy_login'] = $proxy->login; 
             $proxySettings['proxy_password'] = $proxy->password;
             $soapClientArray = array_merge($soapClientArray, $proxySettings);
 		}
@@ -168,7 +168,7 @@ class SforceBaseClient {
 		));
 		$result = $result->result;
 		$this->_setLoginHeader($result);
-
+		
 		return $result;
 	}
 
@@ -182,7 +182,7 @@ class SforceBaseClient {
 		$arg = new stdClass();
 		return $this->sforce->logout();
 	}
-
+ 
 	/**
 	 *invalidate Sessions from the salseforce system`
 	 *
@@ -193,8 +193,8 @@ class SforceBaseClient {
 		$arg = new stdClass();
         $this->logout();
 		return $this->sforce->invalidateSessions();
-	}
-
+	} 
+ 
 	/**
 	 * Specifies the session ID returned from the login server after a successful
 	 * login.
@@ -218,7 +218,7 @@ class SforceBaseClient {
 
 	private function setHeaders($call=NULL) {
 		$this->sforce->__setSoapHeaders(NULL);
-
+		
 		$header_array = array (
 			$this->sessionHeader
 		);
@@ -285,7 +285,7 @@ class SforceBaseClient {
 				array_push($header_array, $header);
 			}
 		}
-
+		
 		// try to add allowFieldTruncationHeader
 		$allowFieldTruncationHeaderCalls = array(
 			'convertLead', 'create', 'merge',
@@ -298,7 +298,7 @@ class SforceBaseClient {
 				array_push($header_array, $header);
 			}
 		}
-
+		
 		// try to add localeOptions
 		if ($call == 'describeSObject' || $call == 'describeSObjects') {
 			$header = $this->localeOptions;
@@ -306,7 +306,7 @@ class SforceBaseClient {
 				array_push($header_array, $header);
 			}
 		}
-
+		
 		// try to add PackageVersionHeader
 		$packageVersionHeaderCalls = array(
 			'convertLead', 'create', 'delete', 'describeGlobal',
@@ -321,8 +321,8 @@ class SforceBaseClient {
 				array_push($header_array, $header);
 			}
 		}
-
-
+		
+		
 		$this->sforce->__setSoapHeaders($header_array);
 	}
 
@@ -402,7 +402,7 @@ class SforceBaseClient {
 			$this->queryHeader = NULL;
 		}
 	}
-
+	
 	public function setAllowFieldTruncationHeader($header) {
 		if ($header != NULL) {
 			$this->allowFieldTruncationHeader = new SoapHeader($this->namespace, 'AllowFieldTruncationHeader', array (
@@ -413,7 +413,7 @@ class SforceBaseClient {
 			$this->allowFieldTruncationHeader = NULL;
 		}
 	}
-
+	
 	public function setLocaleOptions($header) {
 		if ($header != NULL) {
 			$this->localeOptions = new SoapHeader($this->namespace, 'LocaleOptions',
@@ -425,14 +425,14 @@ class SforceBaseClient {
 			$this->localeOptions = NULL;
 		}
 	}
-
+	
 	/**
 	 * @param $header
 	 */
 	public function setPackageVersionHeader($header) {
 		if ($header != NULL) {
 			$headerData = array('packageVersions' => array());
-
+			
 			foreach ($header->packageVersions as $key => $hdrElem) {
 				$headerData['packageVersions'][] = array(
 					'majorNumber' => $hdrElem->majorNumber,
@@ -440,7 +440,7 @@ class SforceBaseClient {
 					'namespace' => $hdrElem->namespace,
 				);
 			}
-
+			
 			$this->packageVersionHeader = new SoapHeader($this->namespace,
 				'PackageVersionHeader',
 				$headerData
@@ -549,8 +549,8 @@ class SforceBaseClient {
 	  $backtrace = debug_backtrace();
 	  die('Please pass in array to this function:  '.$backtrace[0]['function']);
 	}
-  }
-
+  } 
+	
 	protected function _sendEmail($arg) {
 		$this->setHeaders();
 		return $this->sforce->sendEmail($arg)->result;
@@ -578,9 +578,20 @@ class SforceBaseClient {
 	 */
 	public function delete($ids) {
 		$this->setHeaders("delete");
-		$arg = new stdClass();
-		$arg->ids = $ids;
-		return $this->sforce->delete($arg)->result;
+		if(count($ids) > 200) {
+			$result = array();
+			$chunked_ids = array_chunk($ids, 200);
+			foreach($chunked_ids as $cids) {
+				$arg = new stdClass;
+				$arg->ids = $cids;
+				$result = array_merge($result, $this->sforce->delete($arg)->result);
+			}
+		} else {
+			$arg = new stdClass;
+			$arg->ids = $ids;
+			$result = $this->sforce->delete($arg)->result;
+		}
+		return $result;
 	}
 
 	/**
@@ -673,7 +684,7 @@ class SforceBaseClient {
 		$this->setHeaders("describeLayout");
 		$arg = new stdClass();
 		$arg->sObjectType = new SoapVar($type, XSD_STRING, 'string', 'http://www.w3.org/2001/XMLSchema');
-		if (isset($recordTypeIds) && count($recordTypeIds))
+		if (isset($recordTypeIds) && count($recordTypeIds)) 
 			$arg->recordTypeIds = $recordTypeIds;
 		return $this->sforce->describeLayout($arg)->result;
 	}
@@ -733,7 +744,7 @@ class SforceBaseClient {
 	/**
 	 * Retrieves available category groups along with their data category structure for objects specified in the request.
 	 *
-	 * @param DataCategoryGroupSobjectTypePair $pairs
+	 * @param DataCategoryGroupSobjectTypePair $pairs 
 	 * @param bool $topCategoriesOnly   Object Type
 	 * @return DescribeLayoutResult
 	 */
@@ -940,12 +951,12 @@ class QueryResult implements Iterator{
 
 	public $pointer; // Current iterator location
 	private $sf; // SOAP Client
-
+	
 	public function __construct($response) {
 		$this->queryLocator = $response->queryLocator;
 		$this->done = $response->done;
 		$this->size = $response->size;
-
+		
 		$this->pointer = 0;
 		$this->sf = false;
 
@@ -964,15 +975,15 @@ class QueryResult implements Iterator{
 			}
 		}
 	}
-
+	
 	public function setSf(SforceBaseClient $sf) { $this->sf = $sf; } // Dependency Injection
-
+	
 	// Basic Iterator implementation functions
 	public function rewind() { $this->pointer = 0; }
 	public function next() { ++$this->pointer; }
 	public function key() { return $this->pointer; }
 	public function current() { return new SObject($this->records[$this->pointer]); }
-
+	
 	public function valid() {
 		while ($this->pointer >= count($this->records)) {
 			// Pointer is larger than (current) result set; see if we can fetch more
@@ -987,7 +998,7 @@ class QueryResult implements Iterator{
 			}
 		}
 		if (isset($this->records[$this->pointer])) return true;
-
+		
 		throw new Exception("QueryResult has gaps in the record data?");
 	}
 }
@@ -1003,7 +1014,7 @@ class SObject {
 		}
 
 		foreach ($response as $responseKey => $responseValue) {
-			if (in_array($responseKey, array('Id', 'type', 'any'))) {
+			if (in_array(strval($responseKey), array('Id', 'type', 'any'))) {
 				continue;
 			}
 			$this->$responseKey = $responseValue;
@@ -1119,7 +1130,7 @@ class SObject {
 			}
 		}
 	}
-
+	
 	function __get($name) {	return (isset($this->fields->$name))? $this->fields->$name : false; }
 	function __isset($name) { return isset($this->fields->$name); }
 
@@ -1148,7 +1159,7 @@ class SObject {
 	}
 
 	/**
-	 *
+	 * 
 	 * @param string $contents
 	 * @return array
 	 */
